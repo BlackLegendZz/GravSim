@@ -15,6 +15,7 @@ public class SimpleGravSimulation : MonoBehaviour
 
     public Transform Prefab;
     public bool RandomMass = false;
+    public bool InitialRandomVelocity = false;
     [Range(minMass, maxMass)]
     public float Mass = 400;
     [Range(2, 2000)]
@@ -47,7 +48,11 @@ public class SimpleGravSimulation : MonoBehaviour
             {
                 point.mass = Random.Range(minMass, maxMass);
             }
-
+            if (InitialRandomVelocity)
+            {
+                point.velocity.x = Random.value * 0.001f;
+                point.velocity.y = Random.value * 0.001f;
+            }
             Transform t = Instantiate(Prefab);
             pos.x = Random.Range(-camVisibleFieldWidth, camVisibleFieldWidth);
             pos.y = Random.Range(-camVisibleFieldHeight, camVisibleFieldHeight);
@@ -78,7 +83,7 @@ public class SimpleGravSimulation : MonoBehaviour
 
                 Vector3 deltaDist = p1.position - p2.position;
                 float distSqr = deltaDist.sqrMagnitude;
-                float force = gravConst * (p1.mass * p2.mass) / (float)(distSqr + 1e-5);
+                float force = gravConst * (p1.mass * p2.mass) / (distSqr + 1e-5f);
 
                 Vector3 deltaVelocity = deltaDist * force;
                 vel += deltaVelocity;

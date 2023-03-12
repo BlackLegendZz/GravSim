@@ -253,5 +253,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Prefab: {fileID: 7876999290592254272, guid: e7057275202f5af4c9d8027f13c7685f, type: 3}
   RandomMass: 0
-  Mass: 308
-  NumPoints: 2
+  Mass: 250
+  NumPoints: 500
