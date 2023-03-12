@@ -248,11 +248,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1013595949}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 13d8e987dcd1cf64cbc812e6bb5bebcf, type: 3}
+  m_Script: {fileID: 11500000, guid: c06d99e614ee8cc449d7cb05fb846ca5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shader: {fileID: 7200000, guid: 5bbde81f7787339489afe140657bed89, type: 3}
-  prefab: {fileID: 7876999290592254272, guid: e7057275202f5af4c9d8027f13c7685f, type: 3}
-  randomMass: 0
-  mass: 0.0005
-  numPoints: 20000
+  Prefab: {fileID: 7876999290592254272, guid: e7057275202f5af4c9d8027f13c7685f, type: 3}
+  RandomMass: 0
+  Mass: 308
+  NumPoints: 2
