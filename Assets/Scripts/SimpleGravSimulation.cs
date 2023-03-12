@@ -15,12 +15,18 @@ public class SimpleGravSimulation : MonoBehaviour
     private SpriteRenderer[] spriteRenders;
 
     public Transform Prefab;
-    public bool RandomMass = false;
-    public bool InitialRandomVelocity = false;
-    [Range(minMass, maxMass)]
-    public float Mass = 400;
     [Range(2, 2000)]
     public int NumPoints = 2;
+
+    [Header("Mass")]
+    public bool RandomMass = false;
+    [Range(minMass, maxMass)]
+    public float Mass = 400;
+
+    [Header("Initial Velocity")]
+    public bool InitialRandomVelocity = false;
+    [Range(0.001f, 0.1f)]
+    public float VelocityScale = 0.001f;
 
     // Start is called before the first frame update
     void Start()
@@ -52,8 +58,8 @@ public class SimpleGravSimulation : MonoBehaviour
             }
             if (InitialRandomVelocity)
             {
-                point.velocity.x = Random.value * 0.001f;
-                point.velocity.y = Random.value * 0.001f;
+                point.velocity.x = Random.value * VelocityScale;
+                point.velocity.y = Random.value * VelocityScale;
             }
             Transform t = Instantiate(Prefab);
             pos.x = Random.Range(-camVisibleFieldWidth, camVisibleFieldWidth);
@@ -71,11 +77,14 @@ public class SimpleGravSimulation : MonoBehaviour
             points[i] = point;
             tempVelocities[i] = Vector3.zero;
         }
+
+        Camera.main.orthographicSize = 10; // Adjust the camera so MOST bodies are in view all of the time
     }
 
     // Update is called once per frame
     void Update()
     {
+        // Very basic newtonian gravity formula for all N bodies
         float maxVelocitySqrMagnitude = 0.0f;
         Vector3 center = Vector3.zero;
         for (int i = 0; i < numPoints; i++)
@@ -89,7 +98,7 @@ public class SimpleGravSimulation : MonoBehaviour
 
                 Vector3 deltaDist = p1.position - p2.position;
                 float distSqr = deltaDist.sqrMagnitude;
-                float force = gravConst * (p1.mass * p2.mass) / (distSqr + 1e-5f);
+                float force = gravConst * (p1.mass * p2.mass) / (distSqr + 1e-5f); //Apply a low value to the distance to combat a near "infinite" force for very close bodies
 
                 Vector3 deltaVelocity = deltaDist * force;
                 vel += deltaVelocity;
@@ -101,6 +110,7 @@ public class SimpleGravSimulation : MonoBehaviour
             }
         }
 
+        // Apply the calculated forces at the end to not screw up the forces of bodies that get calculated later
         for (int i = 0; i < numPoints; i++)
         {
             points[i].position -= tempVelocities[i];
