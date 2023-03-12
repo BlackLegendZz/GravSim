@@ -4,14 +4,15 @@ using UnityEngine;
 
 public class SimpleGravSimulation : MonoBehaviour
 {
-    Point[] points;
-    Transform[] pointsTransform;
     private const int minMass = 100;
     private const int maxMass = 1000;
     const float gravConst = 0.00000000006672041f;
     private float mass;
     private int numPoints;
+    Point[] points;
+    Transform[] pointsTransform;
     private Vector3[] tempVelocities;
+    private SpriteRenderer[] spriteRenders;
 
     public Transform Prefab;
     public bool RandomMass = false;
@@ -34,6 +35,7 @@ public class SimpleGravSimulation : MonoBehaviour
 
         points = new Point[numPoints];
         pointsTransform = new Transform[numPoints];
+        spriteRenders = new SpriteRenderer[numPoints];
 
         float camVisibleFieldHeight = Camera.main.orthographicSize;
         float scale = Camera.main.pixelWidth / (float)Camera.main.pixelHeight;
@@ -61,6 +63,9 @@ public class SimpleGravSimulation : MonoBehaviour
             t.localScale = Vector3.one * (point.mass / maxMass);
             t.SetParent(transform, false);
 
+            SpriteRenderer ren = t.GetChild(0).GetComponent<SpriteRenderer>();
+            spriteRenders[i] = ren;
+
             point.position = t.position;
             pointsTransform[i] = t;
             points[i] = point;
@@ -71,6 +76,7 @@ public class SimpleGravSimulation : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        float maxVelocitySqrMagnitude = 0.0f;
         Vector3 center = Vector3.zero;
         for (int i = 0; i < numPoints; i++)
         {
@@ -89,6 +95,10 @@ public class SimpleGravSimulation : MonoBehaviour
                 vel += deltaVelocity;
             }
             tempVelocities[i] = vel;
+            if(vel.sqrMagnitude > maxVelocitySqrMagnitude)
+            {
+                maxVelocitySqrMagnitude = vel.sqrMagnitude;
+            }
         }
 
         for (int i = 0; i < numPoints; i++)
@@ -97,6 +107,9 @@ public class SimpleGravSimulation : MonoBehaviour
             points[i].velocity = tempVelocities[i];
             pointsTransform[i].position = points[i].position;
             center += points[i].position;
+
+            float ratio = points[i].velocity.sqrMagnitude / maxVelocitySqrMagnitude;
+            spriteRenders[i].color = new Color(ratio, ratio, ratio);
         }
 
         center.x /= numPoints;
