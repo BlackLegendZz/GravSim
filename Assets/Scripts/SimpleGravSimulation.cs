@@ -28,16 +28,68 @@ public class SimpleGravSimulation : MonoBehaviour
     [Range(0.001f, 0.1f)]
     public float VelocityScale = 0.001f;
 
+
+    void NaiveNBody()
+    {
+        // Very basic newtonian gravity formula for all N bodies
+        float maxVelocitySqrMagnitude = 0.0f;
+        Vector3 center = Vector3.zero;
+        for (int i = 0; i < numPoints; i++)
+        {
+            Point p1 = points[i];
+            Vector3 vel = p1.Velocity;
+            for (int j = 0; j < numPoints; j++)
+            {
+                if (j == i) { continue; }
+                Point p2 = points[j];
+
+                Vector3 deltaDist = p1.Position - p2.Position;
+                float distSqr = deltaDist.sqrMagnitude;
+                float force = gravConst * (p1.Mass * p2.Mass) / (distSqr + 1e-5f); //Apply a low value to the distance to combat a near "infinite" force for very close bodies
+
+                Vector3 deltaVelocity = deltaDist * force;
+                vel += deltaVelocity;
+            }
+            tempVelocities[i] = vel;
+            if (vel.sqrMagnitude > maxVelocitySqrMagnitude)
+            {
+                maxVelocitySqrMagnitude = vel.sqrMagnitude;
+            }
+        }
+
+        // Apply the calculated forces at the end to not screw up the forces of bodies that get calculated later
+        for (int i = 0; i < numPoints; i++)
+        {
+            points[i].Position -= tempVelocities[i];
+            points[i].Velocity = tempVelocities[i];
+            pointsTransform[i].position = points[i].Position;
+            center += points[i].Position;
+
+            float ratio = points[i].Velocity.sqrMagnitude / maxVelocitySqrMagnitude;
+            spriteRenders[i].color = new Color(ratio, ratio, ratio);
+        }
+
+        center.x /= numPoints;
+        center.y /= numPoints;
+        center.z = -10;
+        Camera.main.transform.position = center;
+    }
+
+    void BarnesHut()
+    {
+
+    }
+
     // Start is called before the first frame update
     void Start()
     {
         numPoints = NumPoints;
         mass = Mass;
-        Point point = new Point();
+        
         tempVelocities = new Vector3[numPoints];
-
-        point.velocity = Vector3.zero;
-        point.mass = mass;
+        Point point = new Point();
+        point.Velocity = Vector3.zero;
+        point.Mass = mass;
 
         points = new Point[numPoints];
         pointsTransform = new Transform[numPoints];
@@ -54,25 +106,25 @@ public class SimpleGravSimulation : MonoBehaviour
         {
             if (RandomMass)
             {
-                point.mass = Random.Range(minMass, maxMass);
+                point.Mass = Random.Range(minMass, maxMass);
             }
             if (InitialRandomVelocity)
             {
-                point.velocity.x = Random.value * VelocityScale;
-                point.velocity.y = Random.value * VelocityScale;
+                point.Velocity.x = Random.value * VelocityScale;
+                point.Velocity.y = Random.value * VelocityScale;
             }
             Transform t = Instantiate(Prefab);
             pos.x = Random.Range(-camVisibleFieldWidth, camVisibleFieldWidth);
             pos.y = Random.Range(-camVisibleFieldHeight, camVisibleFieldHeight);
             t.position = pos;
             t.name = $"ball_{i}";
-            t.localScale = Vector3.one * (point.mass / maxMass);
+            t.localScale = Vector3.one * (point.Mass / maxMass);
             t.SetParent(transform, false);
 
             SpriteRenderer ren = t.GetChild(0).GetComponent<SpriteRenderer>();
             spriteRenders[i] = ren;
 
-            point.position = t.position;
+            point.Position = t.position;
             pointsTransform[i] = t;
             points[i] = point;
             tempVelocities[i] = Vector3.zero;
@@ -84,47 +136,6 @@ public class SimpleGravSimulation : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Very basic newtonian gravity formula for all N bodies
-        float maxVelocitySqrMagnitude = 0.0f;
-        Vector3 center = Vector3.zero;
-        for (int i = 0; i < numPoints; i++)
-        {
-            Point p1 = points[i];
-            Vector3 vel = p1.velocity;
-            for (int j = 0; j < numPoints; j++)
-            {
-                if (j == i) { continue; }
-                Point p2 = points[j];
-
-                Vector3 deltaDist = p1.position - p2.position;
-                float distSqr = deltaDist.sqrMagnitude;
-                float force = gravConst * (p1.mass * p2.mass) / (distSqr + 1e-5f); //Apply a low value to the distance to combat a near "infinite" force for very close bodies
-
-                Vector3 deltaVelocity = deltaDist * force;
-                vel += deltaVelocity;
-            }
-            tempVelocities[i] = vel;
-            if(vel.sqrMagnitude > maxVelocitySqrMagnitude)
-            {
-                maxVelocitySqrMagnitude = vel.sqrMagnitude;
-            }
-        }
-
-        // Apply the calculated forces at the end to not screw up the forces of bodies that get calculated later
-        for (int i = 0; i < numPoints; i++)
-        {
-            points[i].position -= tempVelocities[i];
-            points[i].velocity = tempVelocities[i];
-            pointsTransform[i].position = points[i].position;
-            center += points[i].position;
-
-            float ratio = points[i].velocity.sqrMagnitude / maxVelocitySqrMagnitude;
-            spriteRenders[i].color = new Color(ratio, ratio, ratio);
-        }
-
-        center.x /= numPoints;
-        center.y /= numPoints;
-        center.z = -10;
-        Camera.main.transform.position = center;
+        NaiveNBody();
     }
 }
