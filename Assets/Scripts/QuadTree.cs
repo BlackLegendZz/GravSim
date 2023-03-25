@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 public sealed class QuadTree
 {
     public uint Capacity { get; private set; }
@@ -65,6 +67,27 @@ public sealed class QuadTree
         }
     }
 
+    public Point[] GetPointsInside(Rectangle rect)
+    {
+        List<Point> foundPoints = new List<Point>();
+        for (int i = 0; i < inserted; i++)
+        {
+            if (rect.Contains(Points[i]))
+            {
+                foundPoints.Add(Points[i]);
+            }
+        }
+
+        if (IsSubdivided)
+        {
+            foundPoints.AddRange(Southeast.GetPointsInside(rect));
+            foundPoints.AddRange(Southwest.GetPointsInside(rect));
+            foundPoints.AddRange(Northeast.GetPointsInside(rect));
+            foundPoints.AddRange(Northwest.GetPointsInside(rect));
+        }
+
+        return foundPoints.ToArray();
+    }
     private void Subdivide()
     {
         uint newDepth = Depth + 1;

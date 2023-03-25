@@ -24,4 +24,10 @@ public sealed class Rectangle
             && point.Position.y > Y 
             && point.Position.y < Y + Height;
     }
+
+    public bool Overlaps(Rectangle other)
+    {
+        return !(X + Width < other.X || other.X + other.Width < X
+            || Y + Height < other.Y || other.Y + Height < Y);
+    }
 }

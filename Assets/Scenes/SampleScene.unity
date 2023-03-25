@@ -236,9 +236,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8626201940012d40a73fe85ef36cc3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Points: 100
-  Capacity: 5
-  drawDepth: 3
+  Points: 155
+  Capacity: 3
+  drawAll: 1
+  drawDepth: 1
+  StartPosition: {x: 2.25, y: 1.24}
+  Size: {x: 1.5, y: 1.69}
 --- !u!4 &629688120
 Transform:
   m_ObjectHideFlags: 0
