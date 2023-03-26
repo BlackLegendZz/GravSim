@@ -223,7 +223,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &629688119
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -236,12 +236,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8626201940012d40a73fe85ef36cc3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Points: 155
-  Capacity: 3
+  StartPositionQT: {x: -3, y: -3}
+  SizeQT: {x: 6, y: 6}
+  Points: 84
+  Capacity: 5
   drawAll: 1
-  drawDepth: 1
-  StartPosition: {x: 2.25, y: 1.24}
-  Size: {x: 1.5, y: 1.69}
+  drawDepth: 4
+  StartPosition: {x: -1.81, y: -2.13}
+  Size: {x: 3.97, y: 1.64}
 --- !u!4 &629688120
 Transform:
   m_ObjectHideFlags: 0
@@ -296,13 +298,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1013595949}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c06d99e614ee8cc449d7cb05fb846ca5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Prefab: {fileID: 7876999290592254272, guid: e7057275202f5af4c9d8027f13c7685f, type: 3}
-  NumPoints: 500
+  NumPoints: 2000
+  Optimize: 1
   RandomMass: 0
   Mass: 400
   InitialRandomVelocity: 0

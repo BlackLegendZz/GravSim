@@ -1,22 +1,22 @@
-using System.Collections;
-using System.Collections.Generic;
+using DataStructures;
 using UnityEngine;
 
 public class SimpleGravSimulation : MonoBehaviour
 {
-    private const int minMass = 100;
-    private const int maxMass = 1000;
+    const int minMass = 100;
+    const int maxMass = 1000;
     const float gravConst = 0.00000000006672041f;
-    private float mass;
-    private int numPoints;
+    float mass;
+    int numPoints;
     Point[] points;
     Transform[] pointsTransform;
-    private Vector3[] tempVelocities;
-    private SpriteRenderer[] spriteRenders;
+    Vector3[] tempVelocities;
+    SpriteRenderer[] spriteRenders;
 
     public Transform Prefab;
     [Range(2, 2000)]
     public int NumPoints = 2;
+    public bool Optimize = true;
 
     [Header("Mass")]
     public bool RandomMass = false;
@@ -77,7 +77,13 @@ public class SimpleGravSimulation : MonoBehaviour
 
     void BarnesHut()
     {
-
+        /*
+        QuadTree qt = new QuadTree(1, new Rectangle(-15,-15,30,30));
+        for (int i = 0; i < numPoints; i++)
+        {
+            qt.Insert(points[i]);
+        }
+        */
     }
 
     // Start is called before the first frame update
@@ -136,6 +142,13 @@ public class SimpleGravSimulation : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        NaiveNBody();
+        if (Optimize)
+        {
+            BarnesHut();
+        }
+        else
+        {
+            NaiveNBody();
+        }
     }
 }

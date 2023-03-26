@@ -1,11 +1,13 @@
-using System.Collections;
-using System.Collections.Generic;
+using DataStructures;
+using DataStructures.QuadTree;
 using UnityEngine;
 
 
 public class QuadTreeViz : MonoBehaviour
 {
     [Header("Quadtree Zeug")]
+    public Vector2 StartPositionQT = Vector2.zero;
+    public Vector2 SizeQT = Vector2.one;
     [Range(0,400)]
     public uint Points = 5;
     [Range(1, 10)]
@@ -17,10 +19,8 @@ public class QuadTreeViz : MonoBehaviour
     public Vector2 StartPosition = Vector2.zero;
     public Vector2 Size = Vector2.one;
 
-    QuadTree qt;
+    QuadTree<Point> qt;
     Rectangle queryRect;
-    uint pointsOld = 0;
-    uint capacityOld = 0;
     // Start is called before the first frame update
     void Start()
     {
@@ -36,20 +36,15 @@ public class QuadTreeViz : MonoBehaviour
     
     private void OnDrawGizmos()
     {
-        if (qt == null || pointsOld != Points || capacityOld != Capacity)
-        {
-            pointsOld = Points;
-            capacityOld = Capacity;
-            Random.InitState(0);
+        Random.InitState(0);
 
-            qt = new QuadTree(Capacity, new Rectangle(0, 0, 5, 5));
-            for (int i = 0; i < Points; i++)
-            {
-                Point p = new Point();
-                p.Position.x = Random.Range(0.1f, 4.9f);
-                p.Position.y = Random.Range(0.1f, 4.9f);
-                qt.Insert(p);
-            }
+        qt = new QuadTree<Point>(Capacity, new Rectangle(StartPositionQT.x, StartPositionQT.y, SizeQT.x, SizeQT.y));
+        for (int i = 0; i < Points; i++)
+        {
+            Point p = new Point();
+            p.Position.x = Random.Range(StartPositionQT.x, StartPositionQT.x + SizeQT.x);
+            p.Position.y = Random.Range(StartPositionQT.y, StartPositionQT.y + SizeQT.y);
+            qt.Insert(p.Position, p);
         }
 
         Gizmos.color = Color.magenta;
@@ -65,7 +60,7 @@ public class QuadTreeViz : MonoBehaviour
         DrawQT(qt, "");
     }
     
-    void DrawQT(QuadTree qt, string side)
+    void DrawQT(QuadTree<Point> qt, string side)
     {
         Color c;
         switch (side)
@@ -88,9 +83,9 @@ public class QuadTreeViz : MonoBehaviour
         }
 
         Gizmos.color = Color.black;
-        foreach (Point p in qt.Points)
+        foreach (Point p in qt.Data)
         {
-            if (queryRect.Contains(p))
+            if (queryRect.Contains(p.Position))
             {
                 continue;
             }
@@ -100,14 +95,14 @@ public class QuadTreeViz : MonoBehaviour
         Rectangle rect = qt.Boundary;
         if (drawAll)
         {
-            Gizmos.DrawWireCube(new Vector3(rect.Center.X, rect.Center.Y), new Vector3(rect.Width, rect.Height));
+            Gizmos.DrawWireCube(new Vector3(rect.Center.x, rect.Center.y), new Vector3(rect.Width, rect.Height));
         }
         else
         {
             if (qt.Depth == drawDepth)
             {
                 Gizmos.color = c;
-                Gizmos.DrawWireCube(new Vector3(rect.Center.X, rect.Center.Y), new Vector3(rect.Width, rect.Height));
+                Gizmos.DrawWireCube(new Vector3(rect.Center.x, rect.Center.y), new Vector3(rect.Width, rect.Height));
             }
         }
 
