@@ -21,10 +21,10 @@ namespace DataStructures
 
         public bool Contains(Vector2 point)
         {
-            return point.x > X
-                && point.x < X + Width
-                && point.y > Y
-                && point.y < Y + Height;
+            return point.x >= X
+                && point.x <= X + Width
+                && point.y >= Y
+                && point.y <= Y + Height;
         }
 
         public bool Overlaps(Rectangle other)

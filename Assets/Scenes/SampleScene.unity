@@ -304,9 +304,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Prefab: {fileID: 7876999290592254272, guid: e7057275202f5af4c9d8027f13c7685f, type: 3}
-  NumPoints: 2000
-  Optimize: 1
+  NumPoints: 500
+  TimeStep: 1
+  Optimize: 0
+  Theta: 1
   RandomMass: 0
-  Mass: 400
+  Mass: 1000
   InitialRandomVelocity: 0
   VelocityScale: 0.001

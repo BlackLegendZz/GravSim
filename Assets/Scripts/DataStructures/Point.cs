@@ -7,5 +7,6 @@ namespace DataStructures
         public float Mass;
         public Vector3 Velocity;
         public Vector3 Position;
+        public Vector3 Acceleration;
     }
 }

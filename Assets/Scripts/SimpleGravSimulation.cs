@@ -1,89 +1,94 @@
 using DataStructures;
+using DataStructures.QuadTree;
+using System;
 using UnityEngine;
 
 public class SimpleGravSimulation : MonoBehaviour
 {
-    const int minMass = 100;
-    const int maxMass = 1000;
-    const float gravConst = 0.00000000006672041f;
+    const int minMass = 500;
+    const int maxMass = 2000;
     float mass;
     int numPoints;
     Point[] points;
+    QuadTreeBH qt;
     Transform[] pointsTransform;
-    Vector3[] tempVelocities;
     SpriteRenderer[] spriteRenders;
 
     public Transform Prefab;
     [Range(2, 2000)]
     public int NumPoints = 2;
+    [Range(0f, 10f)]
+    public float TimeStep = 1f;
+
+    [Header("Barnes-Hut Optimization")]
     public bool Optimize = true;
+    [Range(0f, 2f)]
+    public float Theta = 1f;
 
     [Header("Mass")]
     public bool RandomMass = false;
     [Range(minMass, maxMass)]
-    public float Mass = 400;
+    public float Mass = 1000;
 
     [Header("Initial Velocity")]
     public bool InitialRandomVelocity = false;
     [Range(0.001f, 0.1f)]
     public float VelocityScale = 0.001f;
 
-
     void NaiveNBody()
-    {
-        // Very basic newtonian gravity formula for all N bodies
-        float maxVelocitySqrMagnitude = 0.0f;
-        Vector3 center = Vector3.zero;
+    {       
         for (int i = 0; i < numPoints; i++)
         {
             Point p1 = points[i];
-            Vector3 vel = p1.Velocity;
+            Vector3 force = Vector3.zero;
             for (int j = 0; j < numPoints; j++)
             {
                 if (j == i) { continue; }
                 Point p2 = points[j];
-
-                Vector3 deltaDist = p1.Position - p2.Position;
-                float distSqr = deltaDist.sqrMagnitude;
-                float force = gravConst * (p1.Mass * p2.Mass) / (distSqr + 1e-5f); //Apply a low value to the distance to combat a near "infinite" force for very close bodies
-
-                Vector3 deltaVelocity = deltaDist * force;
-                vel += deltaVelocity;
+                // Force calculation isn't any different there. I just wanted to remove redundancy
+                force += QuadTreeBH.ForceBetweenPoints(p2, p1);
             }
-            tempVelocities[i] = vel;
-            if (vel.sqrMagnitude > maxVelocitySqrMagnitude)
-            {
-                maxVelocitySqrMagnitude = vel.sqrMagnitude;
-            }
+            points[i].Acceleration = force / points[i].Mass;
         }
-
-        // Apply the calculated forces at the end to not screw up the forces of bodies that get calculated later
-        for (int i = 0; i < numPoints; i++)
-        {
-            points[i].Position -= tempVelocities[i];
-            points[i].Velocity = tempVelocities[i];
-            pointsTransform[i].position = points[i].Position;
-            center += points[i].Position;
-
-            float ratio = points[i].Velocity.sqrMagnitude / maxVelocitySqrMagnitude;
-            spriteRenders[i].color = new Color(ratio, ratio, ratio);
-        }
-
-        center.x /= numPoints;
-        center.y /= numPoints;
-        center.z = -10;
-        Camera.main.transform.position = center;
     }
 
     void BarnesHut()
     {
-        /*
-        QuadTree qt = new QuadTree(1, new Rectangle(-15,-15,30,30));
+        float minX = float.PositiveInfinity;
+        float maxX = float.NegativeInfinity;
+        float minY = float.PositiveInfinity;
+        float maxY = float.NegativeInfinity;
+
+        for (int i = 0; i < numPoints; i++)
+        {
+            Vector3 pos = points[i].Position;
+            if (pos.x < minX)
+            {
+                minX = pos.x;
+            }
+            if (pos.y < minY)
+            {
+                minY = pos.y;
+            }
+            if (pos.x > maxX)
+            {
+                maxX = pos.x;
+            }
+            if (pos.y > maxY)
+            {
+                maxY = pos.y;
+            }
+        }
+        qt = new QuadTreeBH(new Rectangle(minX - 1, minY - 1, maxX - minX + 2, maxY - minY + 2), Theta);
         for (int i = 0; i < numPoints; i++)
         {
             qt.Insert(points[i]);
         }
-        */
+        qt.MassDistribution();
+        for (int i = 0; i < numPoints; i++)
+        {
+            points[i].Acceleration = qt.CalculateAcceleration(points[i]);
+        }
     }
 
     // Start is called before the first frame update
@@ -92,7 +97,6 @@ public class SimpleGravSimulation : MonoBehaviour
         numPoints = NumPoints;
         mass = Mass;
         
-        tempVelocities = new Vector3[numPoints];
         Point point = new Point();
         point.Velocity = Vector3.zero;
         point.Mass = mass;
@@ -112,16 +116,21 @@ public class SimpleGravSimulation : MonoBehaviour
         {
             if (RandomMass)
             {
-                point.Mass = Random.Range(minMass, maxMass);
+                point.Mass = UnityEngine.Random.Range(minMass, maxMass);
             }
             if (InitialRandomVelocity)
             {
-                point.Velocity.x = Random.value * VelocityScale;
-                point.Velocity.y = Random.value * VelocityScale;
+                point.Velocity.x = UnityEngine.Random.value * VelocityScale;
+                point.Velocity.y = UnityEngine.Random.value * VelocityScale;
             }
+            pos.x = UnityEngine.Random.Range(-camVisibleFieldWidth, camVisibleFieldWidth);
+            pos.y = UnityEngine.Random.Range(-camVisibleFieldHeight, camVisibleFieldHeight);
+
+            point.Position = pos;
+            points[i] = point;
+
+            
             Transform t = Instantiate(Prefab);
-            pos.x = Random.Range(-camVisibleFieldWidth, camVisibleFieldWidth);
-            pos.y = Random.Range(-camVisibleFieldHeight, camVisibleFieldHeight);
             t.position = pos;
             t.name = $"ball_{i}";
             t.localScale = Vector3.one * (point.Mass / maxMass);
@@ -129,11 +138,7 @@ public class SimpleGravSimulation : MonoBehaviour
 
             SpriteRenderer ren = t.GetChild(0).GetComponent<SpriteRenderer>();
             spriteRenders[i] = ren;
-
-            point.Position = t.position;
-            pointsTransform[i] = t;
-            points[i] = point;
-            tempVelocities[i] = Vector3.zero;
+            pointsTransform[i] = t;            
         }
 
         Camera.main.orthographicSize = 10; // Adjust the camera so MOST bodies are in view all of the time
@@ -142,6 +147,7 @@ public class SimpleGravSimulation : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        float maxVel = 0f;
         if (Optimize)
         {
             BarnesHut();
@@ -149,6 +155,68 @@ public class SimpleGravSimulation : MonoBehaviour
         else
         {
             NaiveNBody();
+        }
+
+        for (int i = 0; i < numPoints; i++)
+        {
+            points[i].Position += points[i].Velocity * TimeStep;
+            points[i].Velocity += points[i].Acceleration * TimeStep;
+
+            if (points[i].Velocity.sqrMagnitude > maxVel)
+            {
+                maxVel = points[i].Velocity.sqrMagnitude;
+            }
+        }
+
+        Vector3 center = Vector3.zero;
+        // Apply the calculated forces at the end to not screw up the forces of bodies that get calculated later
+        for (int i = 0; i < numPoints; i++)
+        {
+            pointsTransform[i].position = points[i].Position;
+            center += points[i].Position;
+
+            float ratio = points[i].Velocity.sqrMagnitude / maxVel;
+            spriteRenders[i].color = new Color(ratio, ratio, ratio);
+        }
+
+        center.x /= numPoints;
+        center.y /= numPoints;
+        center.z = -10;
+        Camera.main.transform.position = center;
+        
+    }
+
+    private void OnDrawGizmos()
+    {
+        try
+        {
+            DrawQT(qt);
+        }
+        catch (NullReferenceException)
+        {
+            
+        }
+    }
+
+    void DrawQT(QuadTreeBH qt)
+    {
+        Gizmos.color = Color.red;
+        if (qt.ContainsData)
+        {
+            Gizmos.DrawSphere(qt.Body.Position, 0.01f);
+        }
+
+        Rectangle rect = qt.Boundary;
+        Gizmos.DrawWireCube(new Vector3(rect.Center.x, rect.Center.y), new Vector3(rect.Width, rect.Height));
+        Gizmos.color = Color.green;
+        Gizmos.DrawSphere(qt.collectiveMass.Position, 0.2f * 1/(1+qt.Depth*2));
+
+        if (qt.IsSubdivided)
+        {
+            DrawQT(qt.Northeast);
+            DrawQT(qt.Northwest);
+            DrawQT(qt.Southeast);
+            DrawQT(qt.Southwest);
         }
     }
 }
