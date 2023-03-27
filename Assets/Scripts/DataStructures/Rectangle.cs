@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace DataStructures
 {
-    public sealed class Rectangle
+    public struct Rectangle
     {
         public float X { get; private set; }
         public float Y { get; private set; }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace DataStructures.QuadTree
 {
-    internal class QuadTreeBH : IQuadTree<Point>
+    public sealed class QuadTreeBH : IQuadTree<Point>
     {
         public Point Body { get; private set; }
         public Rectangle Boundary { get; private set; }
